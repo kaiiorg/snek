@@ -32,3 +32,11 @@ func NewWorld(tickDelay time.Duration, x, y uint) *World {
 
 	return w
 }
+
+func (w *World) X() uint {
+	return w.boundaryX
+}
+
+func (w *World) Y() uint {
+	return w.boundaryY
+}

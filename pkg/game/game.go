@@ -3,6 +3,8 @@ package game
 import (
 	"flag"
 	"fmt"
+	tea "github.com/charmbracelet/bubbletea"
+	"os"
 	"time"
 
 	"github.com/kaiiorg/snek/pkg/models"
@@ -10,8 +12,8 @@ import (
 
 var (
 	tickDelay = flag.Duration("tick-delay", time.Second, "Roughly how long between each game tick")
-	worldX    = flag.Uint("x", 30, "How wide the world should be")
-	worldY    = flag.Uint("y", 20, "How tall the world should be")
+	worldX    = flag.Uint("x", 120, "How wide the world should be")
+	worldY    = flag.Uint("y", 29, "How tall the world should be")
 )
 
 // Game performs actions on a World and the sneks in it
@@ -28,5 +30,9 @@ func New() *Game {
 }
 
 func (g *Game) Run() {
-	fmt.Printf("Game run\n")
+	p := tea.NewProgram(g)
+	if _, err := p.Run(); err != nil {
+		fmt.Printf("Tea exploded: %s\n", err)
+		os.Exit(1)
+	}
 }
