@@ -13,12 +13,8 @@ func (g *Game) Init() tea.Cmd {
 
 func (g *Game) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
-	// Is it a key press?
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "ctrl+c":
-			return g, tea.Quit
-		}
+		return g.handleKeyMsg(msg)
 	}
 
 	return g, nil
@@ -35,4 +31,12 @@ func (g *Game) View() string {
 	v += topBottom
 
 	return v
+}
+
+func (g *Game) handleKeyMsg(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+	switch msg.String() {
+	case "ctrl+c":
+		return g, tea.Quit
+	}
+	return g, nil
 }
