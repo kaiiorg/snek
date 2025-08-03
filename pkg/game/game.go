@@ -3,6 +3,7 @@ package game
 import (
 	"context"
 	"flag"
+	"github.com/kaiiorg/snek/pkg/renderer"
 	"sync/atomic"
 	"time"
 
@@ -21,8 +22,10 @@ var (
 
 // Game performs actions on a World and the sneks in it
 type Game struct {
-	SkipRender     atomic.Bool
-	World          *models.World
+	SkipRender atomic.Bool
+	World      *models.World
+	Renderer   *renderer.Renderer
+
 	PreviousRender *string
 
 	IncrementX atomic.Int32
@@ -33,6 +36,7 @@ func New() *Game {
 	g := &Game{
 		World: models.NewWorld(*tickDelay, *worldX, *worldY),
 	}
+	g.Renderer = renderer.NewRenderer(g.World)
 
 	centerX, centerY := g.World.Center()
 	if !*headless {

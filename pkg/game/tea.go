@@ -1,22 +1,7 @@
 package game
 
 import (
-	"bytes"
-
-	"github.com/kaiiorg/snek/pkg/models"
-
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/rs/zerolog/log"
-)
-
-var (
-	empty    = []byte{}
-	space    = []byte(" ")
-	lf       = []byte("\n")
-	wall     = []byte("X")
-	snekDead = []byte("∩")[0]
-	snekHead = []byte("S")[0]
-	snekBody = []byte("s")[0]
 )
 
 func (g *Game) Init() tea.Cmd {
@@ -41,65 +26,10 @@ func (g *Game) View() string {
 	}
 	g.SkipRender.Store(true)
 
-	// TODO move render logic to its own struct
-	topBottom := bytes.Join(
-		[][]byte{
-			bytes.Repeat(wall, int(g.World.X())),
-			lf,
-		},
-		empty,
-	)
-	sides := bytes.Join(
-		[][]byte{
-			wall,
-			bytes.Repeat(space, int(g.World.X()-2)),
-			wall,
-			lf,
-		},
-		empty,
-	)
+	rendered := g.Renderer.Render()
+	g.PreviousRender = &rendered
 
-	// Build a full frame out of the top/bottom and sides
-	render := bytes.Join(
-		[][]byte{
-			topBottom,
-			bytes.Repeat(sides, int(g.World.Y()-2)),
-			topBottom,
-		},
-		empty,
-	)
-
-	log.Info().Msg("World frame rendered")
-
-	g.World.RenderSneks(func(sneks []*models.Snek) {
-		for i, snek := range sneks {
-			first := true
-			symbol := snekHead
-			for part := range snek.BodyParts.Iter() {
-				// Determine which symbol to use; head, dead, or body
-				switch {
-				case !first:
-					symbol = snekBody
-				case first && !snek.Dead:
-					first = false
-				case first && snek.Dead:
-					first = false
-					symbol = snekDead
-				}
-				render[g.renderFindOffset(part.X, part.Y)] = symbol
-			}
-			log.Info().Int("snek", i).Msg("Rendered snek")
-		}
-	})
-
-	renderStr := string(render)
-	g.PreviousRender = &renderStr
-
-	return renderStr
-}
-
-func (g *Game) renderFindOffset(X, Y uint) uint {
-	return (g.World.X()+1)*(Y) + X
+	return rendered
 }
 
 func (g *Game) handleKeyMsg(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
