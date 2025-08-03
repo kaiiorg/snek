@@ -1,10 +1,19 @@
 package game
 
 import (
-	"strings"
-
+	"bytes"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/kaiiorg/snek/pkg/models"
 	"github.com/rs/zerolog/log"
+)
+
+var (
+	empty    = []byte{}
+	space    = []byte(" ")
+	lf       = []byte("\n")
+	wall     = []byte("X")
+	snekHead = []byte("S")[0]
+	snekBody = []byte("s")[0]
 )
 
 func (g *Game) Init() tea.Cmd {
@@ -30,19 +39,58 @@ func (g *Game) View() string {
 	g.SkipRender.Store(true)
 
 	// TODO move render logic to its own struct
-	topBottom := strings.Repeat("X", int(g.World.X())) + "\n"
-	sides := "X" + strings.Repeat(" ", int(g.World.X()-2)) + "X\n"
+	topBottom := bytes.Join(
+		[][]byte{
+			bytes.Repeat(wall, int(g.World.X())),
+			lf,
+		},
+		empty,
+	)
+	sides := bytes.Join(
+		[][]byte{
+			wall,
+			bytes.Repeat(space, int(g.World.X()-2)),
+			wall,
+			lf,
+		},
+		empty,
+	)
 
-	render := topBottom
-	for i := uint(0); i < g.World.Y()-2; i++ {
-		render += sides
-	}
-	render += topBottom
-	log.Info().Msg("World rendered")
+	// Build a full frame out of the top/bottom and sides
+	render := bytes.Join(
+		[][]byte{
+			topBottom,
+			bytes.Repeat(sides, int(g.World.Y()-2)),
+			topBottom,
+		},
+		empty,
+	)
 
-	g.PreviousRender = &render
+	log.Info().Msg("World frame rendered")
 
-	return render
+	g.World.RenderSneks(func(sneks []*models.Snek) {
+		for i, snek := range sneks {
+			first := true
+			for part := range snek.BodyParts.Iter() {
+				if first {
+					render[g.renderFindOffset(part.X, part.Y)] = snekHead
+				} else {
+					render[g.renderFindOffset(part.X, part.Y)] = snekBody
+				}
+
+			}
+			log.Info().Int("snek", i).Msg("Rendered snek")
+		}
+	})
+
+	renderStr := string(render)
+	g.PreviousRender = &renderStr
+
+	return renderStr
+}
+
+func (g *Game) renderFindOffset(X, Y uint) uint {
+	return (g.World.X()+1)*(Y-1) + X
 }
 
 func (g *Game) handleKeyMsg(msg tea.KeyMsg) (tea.Model, tea.Cmd) {

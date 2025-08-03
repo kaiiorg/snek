@@ -1,6 +1,7 @@
 package models
 
 import (
+	"github.com/rs/zerolog/log"
 	"sync"
 	"time"
 )
@@ -65,6 +66,13 @@ func (w *World) SpawnSnek(name string, x, y uint, player bool) {
 	w.allSneksMu.Lock()
 	w.allSneks = append(w.allSneks, s)
 	w.allSneksMu.Unlock()
+
+	log.Info().
+		Str("name", name).
+		Uint("x", x).
+		Uint("y", y).
+		Bool("player", player).
+		Msg("Snek spawned")
 }
 
 func (w *World) RenderSneks(renderer func(sneks []*Snek)) {
