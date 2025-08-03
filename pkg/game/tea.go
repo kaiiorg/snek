@@ -2,6 +2,7 @@ package game
 
 import (
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/rs/zerolog/log"
 )
 
 func (g *Game) Init() tea.Cmd {
@@ -34,24 +35,26 @@ func (g *Game) View() string {
 
 func (g *Game) handleKeyMsg(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	switch msg.String() {
-	case "w":
+	case "w", "up":
 		// Move up
 		g.IncrementX.Store(0)
 		g.IncrementY.Store(-1)
-	case "a":
+	case "a", "left":
 		// Move left
 		g.IncrementX.Store(-1)
 		g.IncrementY.Store(0)
-	case "s":
+	case "s", "down":
 		// Move down
 		g.IncrementX.Store(0)
 		g.IncrementY.Store(1)
-	case "d":
+	case "d", "right":
 		// Move right
 		g.IncrementX.Store(1)
 		g.IncrementY.Store(0)
 	case "ctrl+c":
 		return g, tea.Quit
+	default:
+		log.Trace().Str("keyMesg", msg.String()).Msg("Unhandled key input")
 	}
 	return g, nil
 }
