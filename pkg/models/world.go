@@ -1,9 +1,10 @@
 package models
 
 import (
-	"github.com/rs/zerolog/log"
 	"sync"
 	"time"
+
+	"github.com/rs/zerolog/log"
 )
 
 // World keeps track of everything in the world of Snek
@@ -29,6 +30,13 @@ type World struct {
 
 // NewWorld initializes a World with a given tickDelay and size
 func NewWorld(tickDelay time.Duration, x, y uint) *World {
+	if x < 20 {
+		x = 20
+	}
+	if y < 10 {
+		y = 10
+	}
+
 	w := &World{
 		tickDelay: tickDelay,
 		allSneks:  []*Snek{},
@@ -57,7 +65,7 @@ func (w *World) SpawnSnek(name string, x, y uint, player bool) {
 		x, y = w.Center()
 	}
 
-	s := NewSnek(name, x, y)
+	s := NewSnek(name, x, y, 20)
 	if player {
 		w.playerSnekMu.Lock()
 		w.playerSnek = s

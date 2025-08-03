@@ -3,16 +3,17 @@ package game
 import (
 	"context"
 	"flag"
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/rs/zerolog/log"
 	"sync/atomic"
 	"time"
 
 	"github.com/kaiiorg/snek/pkg/models"
+
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/rs/zerolog/log"
 )
 
 var (
-	tickDelay = flag.Duration("tick-delay", time.Second, "Roughly how long between each game tick")
+	tickDelay = flag.Duration("tick-delay", 500*time.Millisecond, "Roughly how long between each game tick")
 	worldX    = flag.Uint("x", 120, "How wide the world should be")
 	worldY    = flag.Uint("y", 29, "How tall the world should be")
 	headless  = flag.Bool("headless", false, "If no player snek should be spawned")
@@ -68,7 +69,7 @@ func (g *Game) tick(teaProgram *tea.Program) {
 	// TODO do game logic
 	incrementX := g.IncrementX.Swap(0)
 	incrementY := g.IncrementY.Swap(0)
-	
+
 	g.World.UpdatePlayerSnek(int(incrementX), int(incrementY))
 
 	// Tell the render method it is ok to actually do its thing now

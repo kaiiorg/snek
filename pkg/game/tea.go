@@ -74,6 +74,7 @@ func (g *Game) View() string {
 			for part := range snek.BodyParts.Iter() {
 				if first {
 					render[g.renderFindOffset(part.X, part.Y)] = snekHead
+					first = false
 				} else {
 					render[g.renderFindOffset(part.X, part.Y)] = snekBody
 				}
