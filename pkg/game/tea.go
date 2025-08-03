@@ -95,6 +95,22 @@ func (g *Game) renderFindOffset(X, Y uint) uint {
 
 func (g *Game) handleKeyMsg(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	switch msg.String() {
+	case "w":
+		// Move up
+		g.IncrementX.Store(0)
+		g.IncrementY.Store(-1)
+	case "a":
+		// Move left
+		g.IncrementX.Store(-1)
+		g.IncrementY.Store(0)
+	case "s":
+		// Move down
+		g.IncrementX.Store(0)
+		g.IncrementY.Store(1)
+	case "d":
+		// Move right
+		g.IncrementX.Store(1)
+		g.IncrementY.Store(0)
 	case "ctrl+c":
 		return g, tea.Quit
 	}

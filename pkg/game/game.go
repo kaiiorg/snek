@@ -23,6 +23,9 @@ type Game struct {
 	SkipRender     atomic.Bool
 	World          *models.World
 	PreviousRender *string
+
+	IncrementX atomic.Int32
+	IncrementY atomic.Int32
 }
 
 func New() *Game {
@@ -63,6 +66,10 @@ func (g *Game) Run() {
 
 func (g *Game) tick(teaProgram *tea.Program) {
 	// TODO do game logic
+	incrementX := g.IncrementX.Swap(0)
+	incrementY := g.IncrementY.Swap(0)
+	
+	g.World.UpdatePlayerSnek(int(incrementX), int(incrementY))
 
 	// Tell the render method it is ok to actually do its thing now
 	g.SkipRender.Store(false)

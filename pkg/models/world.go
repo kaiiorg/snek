@@ -83,3 +83,17 @@ func (w *World) RenderSneks(renderer func(sneks []*Snek)) {
 	defer w.allSneksMu.RUnlock()
 	renderer(w.allSneks)
 }
+
+func (w *World) UpdatePlayerSnek(incrementX, incrementY int) {
+	if w.playerSnek == nil {
+		return
+	}
+	w.playerSnekMu.Lock()
+	w.playerSnek.Move(incrementX, incrementY)
+	w.playerSnekMu.Unlock()
+
+	log.Debug().
+		Int("x", incrementX).
+		Int("y", incrementY).
+		Msg("Moved player snek")
+}
