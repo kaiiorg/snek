@@ -1,9 +1,16 @@
 package models
 
 import (
-	"github.com/gammazero/deque"
+	"flag"
+
 	"github.com/kaiiorg/snek/pkg/tools"
+
+	"github.com/gammazero/deque"
 	"github.com/rs/zerolog/log"
+)
+
+var (
+	allowZombieSnek = flag.Bool("cheat-zombie-snek", false, "Allow control of dead sneks")
 )
 
 // Snek is a player character. May be a local or remote character.
@@ -45,7 +52,11 @@ func NewSnek(name string, x, y, length uint, clipper *tools.Clipper) *Snek {
 }
 
 func (s *Snek) Move(incrementX, incrementY int) {
-	// TODO make sure we don't overflow X or Y
+	// If the snek is dead, they're not allowed to move unless the zombie cheat is enabled
+	if s.Dead && !*allowZombieSnek {
+		return
+	}
+
 	oldX, oldY := s.BodyParts.At(0).X, s.BodyParts.At(0).Y
 	newX, newY := oldX, oldY
 
