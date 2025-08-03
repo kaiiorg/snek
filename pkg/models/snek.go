@@ -2,6 +2,7 @@ package models
 
 import (
 	"github.com/gammazero/deque"
+	"github.com/kaiiorg/snek/pkg/tools"
 	"github.com/rs/zerolog/log"
 )
 
@@ -10,8 +11,14 @@ type Snek struct {
 	// Name is this snek's name. Will be displayed where appropriate.
 	Name string
 
+	// Dead is if this snek ran into something and died. How sad.
+	Dead bool
+
 	// BodyParts describes all parts of a snek
 	BodyParts deque.Deque[*SnekBodyPart]
+
+	// clipper handles the logic for clipping sneks and objects to within the world boundary
+	clipper *tools.Clipper
 }
 
 type SnekBodyPart struct {
@@ -20,14 +27,17 @@ type SnekBodyPart struct {
 }
 
 // NewSnek initializes a Snek and sets its location to the requested position
-func NewSnek(name string, x, y, length uint) *Snek {
+func NewSnek(name string, x, y, length uint, clipper *tools.Clipper) *Snek {
 	s := &Snek{
-		Name: name,
+		Name:    name,
+		clipper: clipper,
 	}
 
+	// Must have at least a head
 	s.BodyParts.PushFront(&SnekBodyPart{X: x, Y: y})
+	// Add however many body segments we need
 	for i := uint(0); i < length; i++ {
-		x--
+		y--
 		s.BodyParts.PushFront(&SnekBodyPart{X: x, Y: y})
 	}
 
@@ -68,10 +78,19 @@ func (s *Snek) Move(incrementX, incrementY int) {
 		}
 	}
 
-	oldTail := s.BodyParts.PopBack()
-	oldTail.X = newX
-	oldTail.Y = newY
-	s.BodyParts.PushFront(oldTail)
+	// Determine if we've collided with the world edge
+	// TODO Not thread safe to update the bool this way
+	newX, newY, clipped := s.clipper.World(newX, newY)
+
+	// If we were clipped to the world boundary, don't update the position and mark this snek as dead
+	if clipped {
+		s.Dead = clipped
+	} else {
+		oldTail := s.BodyParts.PopBack()
+		oldTail.X = newX
+		oldTail.Y = newY
+		s.BodyParts.PushFront(oldTail)
+	}
 
 	log.Trace().
 		Str("name", s.Name).
@@ -79,6 +98,8 @@ func (s *Snek) Move(incrementX, incrementY int) {
 		Uint("oldY", oldY).
 		Uint("newX", newY).
 		Uint("newY", newY).
+		Bool("clipped", clipped).
+		Bool("dead", s.Dead).
 		Int("incrementX", incrementX).
 		Int("incrementY", incrementY).
 		Msg("Moved Snek")

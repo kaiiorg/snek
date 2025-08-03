@@ -1,6 +1,7 @@
 package models
 
 import (
+	"github.com/kaiiorg/snek/pkg/tools"
 	"sync"
 	"time"
 
@@ -26,6 +27,9 @@ type World struct {
 	boundaryX uint
 	// boundaryY sets the uppermost limit of the world. A snek contacting 0 or this limit dies a painful death
 	boundaryY uint
+
+	// clipper handles the logic for clipping sneks and objects to within the world boundary
+	clipper *tools.Clipper
 }
 
 // NewWorld initializes a World with a given tickDelay and size
@@ -42,6 +46,10 @@ func NewWorld(tickDelay time.Duration, x, y uint) *World {
 		allSneks:  []*Snek{},
 		boundaryX: x,
 		boundaryY: y,
+		clipper: &tools.Clipper{
+			WorldX: x,
+			WorldY: y,
+		},
 	}
 
 	return w
@@ -65,7 +73,7 @@ func (w *World) SpawnSnek(name string, x, y uint, player bool) {
 		x, y = w.Center()
 	}
 
-	s := NewSnek(name, x, y, 20)
+	s := NewSnek(name, x, y, 5, w.clipper)
 	if player {
 		w.playerSnekMu.Lock()
 		w.playerSnek = s

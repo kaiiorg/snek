@@ -2,8 +2,10 @@ package game
 
 import (
 	"bytes"
-	tea "github.com/charmbracelet/bubbletea"
+
 	"github.com/kaiiorg/snek/pkg/models"
+
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/rs/zerolog/log"
 )
 
@@ -12,6 +14,7 @@ var (
 	space    = []byte(" ")
 	lf       = []byte("\n")
 	wall     = []byte("X")
+	snekDead = []byte("∩")[0]
 	snekHead = []byte("S")[0]
 	snekBody = []byte("s")[0]
 )
@@ -71,14 +74,19 @@ func (g *Game) View() string {
 	g.World.RenderSneks(func(sneks []*models.Snek) {
 		for i, snek := range sneks {
 			first := true
+			symbol := snekHead
 			for part := range snek.BodyParts.Iter() {
-				if first {
-					render[g.renderFindOffset(part.X, part.Y)] = snekHead
+				// Determine which symbol to use; head, dead, or body
+				switch {
+				case !first:
+					symbol = snekBody
+				case first && !snek.Dead:
 					first = false
-				} else {
-					render[g.renderFindOffset(part.X, part.Y)] = snekBody
+				case first && snek.Dead:
+					first = false
+					symbol = snekDead
 				}
-
+				render[g.renderFindOffset(part.X, part.Y)] = symbol
 			}
 			log.Info().Int("snek", i).Msg("Rendered snek")
 		}
@@ -91,7 +99,7 @@ func (g *Game) View() string {
 }
 
 func (g *Game) renderFindOffset(X, Y uint) uint {
-	return (g.World.X()+1)*(Y-1) + X
+	return (g.World.X()+1)*(Y) + X
 }
 
 func (g *Game) handleKeyMsg(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
