@@ -2,12 +2,14 @@ package main
 
 import (
 	"flag"
+	"runtime/debug"
+	"time"
+
 	"github.com/kaiiorg/snek/pkg/game"
+
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"gopkg.in/natefinch/lumberjack.v2"
-	"runtime/debug"
-	"time"
 )
 
 var (

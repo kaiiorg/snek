@@ -1,9 +1,10 @@
 package models
 
 import (
-	"github.com/kaiiorg/snek/pkg/tools"
 	"sync"
 	"time"
+
+	"github.com/kaiiorg/snek/pkg/tools"
 
 	"github.com/rs/zerolog/log"
 )

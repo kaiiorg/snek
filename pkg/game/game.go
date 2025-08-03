@@ -3,11 +3,11 @@ package game
 import (
 	"context"
 	"flag"
-	"github.com/kaiiorg/snek/pkg/renderer"
 	"sync/atomic"
 	"time"
 
 	"github.com/kaiiorg/snek/pkg/models"
+	"github.com/kaiiorg/snek/pkg/renderer"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/rs/zerolog/log"
