@@ -24,6 +24,8 @@ type Renderer struct {
 	cachedTopBottom []rune
 	cachedSides     []rune
 
+	currentFrame []rune
+
 	stringBuilder strings.Builder
 
 	metricsStart      time.Time
@@ -39,70 +41,16 @@ func NewRenderer(world *models.World) *Renderer {
 		cachedSides:     make([]rune, world.X()+1),
 	}
 
-	// TODO shove this logic into a method and write a test for it
-	// Build our cached top/bottom
-	// All Xs, then an LF
-	// Example: XXXXXXX\n
-	for i := range r.cachedTopBottom {
-		r.cachedTopBottom[i] = wall
-	}
-	r.cachedTopBottom[len(r.cachedTopBottom)-1] = lf
-
-	// TODO shove this logic into a method and write a test for it
-	// Build our cached sides
-	// All spaces, with Xs on both side, then an LF
-	// Example: X     X\n
-	for i := range r.cachedSides {
-		r.cachedSides[i] = space
-	}
-	r.cachedSides[0] = wall
-	r.cachedSides[len(r.cachedSides)-2] = wall
-	r.cachedSides[len(r.cachedSides)-1] = lf
+	r.initTopBottom()
+	r.initSides()
 
 	return r
 }
 
 func (r *Renderer) Render() string {
-	// TODO shove this logic into a method and write a test for it
-	r.metricsStart = time.Now()
-	var frame []rune
-	frame = append(frame, r.cachedTopBottom...)
-	for i := uint(0); i < r.world.Y()-2; i++ {
-		frame = append(frame, r.cachedSides...)
-	}
-	frame = append(frame, r.cachedTopBottom...)
-	r.metricsFrameInit = time.Since(r.metricsStart)
-
-	r.world.RenderSneks(func(sneks []*models.Snek) {
-		r.metricsStart = time.Now()
-		for _, snek := range sneks {
-			first := true
-			symbol := snekHead
-			for part := range snek.BodyParts.Iter() {
-				// Determine which symbol to use; head, dead, or body
-				switch {
-				case !first:
-					symbol = snekBody
-				case first && !snek.Dead:
-					first = false
-				case first && snek.Dead:
-					first = false
-					symbol = snekDead
-				}
-				frame[r.findOffset(part.X, part.Y)] = symbol
-			}
-		}
-		r.metricsSnekRender = time.Since(r.metricsStart)
-	})
-
-	// TODO shove this logic into a method and write a test for it
-	r.metricsStart = time.Now()
-	r.stringBuilder.Reset()
-	for i := range frame {
-		r.stringBuilder.WriteRune(frame[i])
-	}
-	result := r.stringBuilder.String()
-	r.metricsRuneRender = time.Since(r.metricsStart)
+	r.initFrame()
+	r.renderSneks()
+	result := r.renderFrameToString()
 
 	log.Trace().
 		Str("frameInit", r.metricsFrameInit.String()).
@@ -112,8 +60,4 @@ func (r *Renderer) Render() string {
 		Msg("Render time")
 
 	return result
-}
-
-func (r *Renderer) findOffset(X, Y uint) uint {
-	return (r.world.X()+1)*(Y) + X
 }
